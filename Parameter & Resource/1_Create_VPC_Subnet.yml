@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template to create VPC and Subnet
+
+Parameters:
+  AZPublicSubnet:
+    Description: Select AZ for public subnet
+    Type: AWS::EC2::AvailabilityZone::Name
+  AZPrivateSubnet:
+    Description: Select AZ for private subnet
+    Type: AWS::EC2::AvailabilityZone::Name
+
+Resources:
+  mylabvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/16
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: mylabvpc
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AZPublicSubnet
+      VpcId: !Ref mylabvpc
+      CidrBlock: 192.168.1.0/24
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AZPrivateSubnet
+      VpcId: !Ref mylabvpc
+      CidrBlock: 192.168.2.0/24
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet

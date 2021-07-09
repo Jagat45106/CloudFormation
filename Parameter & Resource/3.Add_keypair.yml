@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: |
+  Template to create VPC,Subnet,Security group and keypair
+  Select the keypair from the list
+
+Parameters:
+  AZPublicSubnet:
+    Description: Select AZ for public subnet
+    Type: AWS::EC2::AvailabilityZone::Name
+  AZPrivateSubnet:
+    Description: Select AZ for private subnet
+    Type: AWS::EC2::AvailabilityZone::Name
+  SelectKeyPair:
+    Description: Select keypair
+    Type: AWS::EC2::KeyPair::KeyName
+
+Resources:
+  mylabvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/16
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: mylabvpc
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AZPublicSubnet
+      VpcId: !Ref mylabvpc
+      CidrBlock: 192.168.1.0/24
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AZPrivateSubnet
+      VpcId: !Ref mylabvpc
+      CidrBlock: 192.168.2.0/24
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet
+  InstanceSecurityGroup1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: cfn_sg_one
+      GroupDescription: security group for public subnet
+      VpcId: !Ref mylabvpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: cfn_sg_one
+  InstanceSecurityGroup2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: cfn_sg_two
+      GroupDescription: security group for private subnet
+      VpcId: !Ref mylabvpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 192.168.1.0/24
+      Tags:
+        - Key: Name
+          Value: cfn_sg_two
