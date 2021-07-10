@@ -1,0 +1,140 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Condition Examples
+
+#Parameter Section
+Parameters:
+  AZPublicSubnet:
+    Description: Select AZ for public subnet
+    Type: AWS::EC2::AvailabilityZone::Name
+  AZPrivateSubnet:
+    Description: Select AZ for private subnet
+    Type: AWS::EC2::AvailabilityZone::Name
+  SelectKeyPair:
+    Description: Select keypair
+    Type: AWS::EC2::KeyPair::KeyName
+  InstanceType:
+    Description: Select the instance type
+    Type: String
+    Default: t2.nano
+    AllowedValues:
+      - t2.micro
+      - t2.small
+      - t2.nano
+  EnvType:
+    Description: Select the Env type
+    Type: String
+    AllowedValues:
+      - dev
+      - prod
+      - stg
+
+#Mapping Section
+Mappings:
+  RegionMap:
+    us-east-1:
+      "HVM64": "ami-0dc2d3e4c0f9ebd18"
+    us-east-2:
+      "HVM64": "ami-0233c2d874b811deb"
+
+#Condition Section
+
+Conditions:
+  ProdInstance: !Equals
+    - !Ref EnvType
+    - prod
+
+#Resource Section
+
+Resources:
+  mylabvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/16
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: mylabvpc
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AZPublicSubnet
+      VpcId: !Ref mylabvpc
+      CidrBlock: 192.168.1.0/24
+      Tags:
+        - Key: Name
+          Value: PublicSubnet
+  PrivateSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref AZPrivateSubnet
+      VpcId: !Ref mylabvpc
+      CidrBlock: 192.168.2.0/24
+      Tags:
+        - Key: Name
+          Value: PrivateSubnet
+  InstanceSecurityGroup1:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: cfn_sg_one
+      GroupDescription: security group for public subnet
+      VpcId: !Ref mylabvpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 3389
+          ToPort: 3389
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: cfn_sg_one
+  InstanceSecurityGroup2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: cfn_sg_two
+      GroupDescription: security group for private subnet
+      VpcId: !Ref mylabvpc
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 192.168.1.0/24
+      Tags:
+        - Key: Name
+          Value: cfn_sg_two
+  WebServer1:
+    Type: AWS::EC2::Instance
+    Condition: ProdInstance
+    Properties:
+      KeyName: !Ref SelectKeyPair
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", HVM64]
+      InstanceType: !Ref InstanceType
+      Monitoring: "false"
+      SubnetId: !Ref PublicSubnet
+      SecurityGroupIds:
+        - !Ref InstanceSecurityGroup1
+      Tags:
+        - Key: Name
+          Value: WebServer1
+
+Outputs:
+  InstanceId:
+    Description: Instance Id
+    Value: !Ref WebServer1
+  MyAZ:
+    Description: My AZ
+    Value: !GetAtt WebServer1.AvailabilityZone
+    Export:
+      Name: !Sub "${AWS::StackName}-InstanceAZ"
+  MyPrivateDNS:
+    Description: My Private DNS
+    Value: !GetAtt WebServer1.PrivateDnsName
+  MyPrivateIp:
+    Description: My Private Ip
+    Value: !GetAtt WebServer1.PrivateIp
+  MyVpc:
+    Description: My VPC Id
+    Value: !Ref mylabvpc
+  MySecurityGroup:
+    Description: My Security Group
+    Value: !Ref InstanceSecurityGroup2
+    Export:
+      Name: InstanceSGexp
