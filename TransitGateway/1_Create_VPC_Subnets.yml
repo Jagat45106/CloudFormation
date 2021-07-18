@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create 3 VPC for Transitgateway Demo LAB
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: " AZ selection for Subnet Configuration"
+        Parameters:
+          - DevAZs
+          - UatAZs
+          - ProdAZs
+
+    ParameterLabels:
+      DevAZs:
+        default: "*Select the AZ in which DEV Subnet Will be Created"
+      UatAZs:
+        default: "*Select the AZ in which UAT Subnet Will be Created"
+      ProdAZs:
+        default: "*Select the AZ in which PROD Subnet Will be Created"
+
+Parameters:
+  DevAZs:
+    Description: Select the AZ
+    Type: AWS::EC2::AvailabilityZone::Name
+  UatAZs:
+    Description: Select the AZ
+    Type: AWS::EC2::AvailabilityZone::Name
+  ProdAZs:
+    Description: Select the AZ
+    Type: AWS::EC2::AvailabilityZone::Name
+
+# Create all the VPCs with Subnets
+
+Resources:
+  devvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.168.0.0/16
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: devvpc
+  uatvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.169.0.0/16
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: uatvpc
+  prodvpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 192.170.0.0/16
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: prodvpc
+
+  #Subnet Creation Section
+  devsubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref DevAZs
+      VpcId: !Ref devvpc
+      CidrBlock: 192.168.1.0/24
+      Tags:
+        - Key: Name
+          Value: devsubnet
+  uatsubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref UatAZs
+      VpcId: !Ref uatvpc
+      CidrBlock: 192.169.1.0/24
+      Tags:
+        - Key: Name
+          Value: uatsubnet
+  prodsubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref ProdAZs
+      VpcId: !Ref prodvpc
+      CidrBlock: 192.170.1.0/24
+      Tags:
+        - Key: Name
+          Value: prodsubnet
