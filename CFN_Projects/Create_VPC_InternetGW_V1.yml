@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create VPC with Internet Gateway
+
+Parameters:
+  Cidr:
+    Description: Enter the CIDR for the VPC
+    Type: String
+    Default: 192.168.0.0/16
+
+Resources:
+  #Create the VPC Resource
+  myTestVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref Cidr
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: myTestVPC
+  #Create the Internet Gateway resorce
+  MyTestIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyTestIGW
+  #Attach the Internet Gateway to VPC
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref myTestVPC
+      InternetGatewayId: !Ref MyTestIGW

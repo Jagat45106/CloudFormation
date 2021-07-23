@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Add subnet to thr template Create_VPC_InternetGW_V1.yml
+
+Parameters:
+  #VPC Subnet
+  Cidr:
+    Description: Enter the CIDR for the VPC
+    Type: String
+    Default: 192.168.0.0/16
+  #List all the AZs in the Region
+  ListAZs:
+    Description:
+    Type: AWS::EC2::AvailabilityZone::Name
+    Default: us-east-1
+
+Resources:
+  #Create the VPC Resource
+  myTestVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref Cidr
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: myTestVPC
+  #Create the Internet Gateway resorce
+  MyTestIGW:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: MyTestIGW
+  #Attach the Internet Gateway to VPC
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref myTestVPC
+      InternetGatewayId: !Ref MyTestIGW
+
+  #Add Subnet to the myTestVPC
+  Subnet_WebServer:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Ref logicalName
+      VpcId: vpc-id
+      CidrBlock: --.--.--.--/--
+      Tags:
+        - Key: keyname
+          Value: value
